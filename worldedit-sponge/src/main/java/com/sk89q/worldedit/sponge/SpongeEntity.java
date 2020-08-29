@@ -25,6 +25,7 @@ import com.sk89q.worldedit.entity.metadata.EntityProperties;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.NullWorld;
+import org.spongepowered.api.world.ServerLocation;
 import org.spongepowered.api.world.server.ServerWorld;
 import org.spongepowered.math.vector.Vector3d;
 
@@ -56,7 +57,7 @@ class SpongeEntity implements Entity {
     public Location getLocation() {
         org.spongepowered.api.entity.Entity entity = entityRef.get();
         if (entity != null) {
-            org.spongepowered.api.world.Location entityLoc = entity.getLocation();
+            ServerLocation entityLoc = (ServerLocation) entity.getLocation();
             Vector3d entityRot = entity.getRotation();
 
             return SpongeWorldEdit.inst().getAdapter().adapt(entityLoc, entityRot);

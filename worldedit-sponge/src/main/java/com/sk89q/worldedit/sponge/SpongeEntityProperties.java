@@ -40,7 +40,6 @@ import org.spongepowered.api.entity.living.trader.Villager;
 import org.spongepowered.api.entity.projectile.Projectile;
 import org.spongepowered.api.entity.vehicle.Boat;
 import org.spongepowered.api.entity.vehicle.minecart.Minecart;
-import org.spongepowered.api.text.Text;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -135,7 +134,7 @@ public class SpongeEntityProperties implements EntityProperties {
 
     @Override
     public boolean isTagged() {
-        return !entity.get(Keys.DISPLAY_NAME).orElse(Text.empty()).isEmpty();
+        return entity.get(Keys.DISPLAY_NAME).isPresent();
     }
 
     @Override

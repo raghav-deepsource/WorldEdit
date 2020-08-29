@@ -26,6 +26,7 @@ import com.sk89q.worldedit.sponge.SpongeWorld;
 import com.sk89q.worldedit.util.Location;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.world.ServerLocation;
 import org.spongepowered.api.world.server.ServerWorld;
 import org.spongepowered.math.vector.Vector3d;
 
@@ -44,7 +45,7 @@ public interface SpongeImplAdapter {
         return true;
     }
 
-    default Location adapt(org.spongepowered.api.world.Location loc, Vector3d rot) {
+    default Location adapt(ServerLocation loc, Vector3d rot) {
         Vector3 position = Vector3.at(loc.getX(), loc.getY(), loc.getZ());
 
         return new Location(getWorld(loc.getWorld()), position, (float) rot.getY(), (float) rot.getX());

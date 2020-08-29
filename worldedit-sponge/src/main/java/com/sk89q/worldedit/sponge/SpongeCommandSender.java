@@ -26,13 +26,8 @@ import com.sk89q.worldedit.session.SessionKey;
 import com.sk89q.worldedit.util.auth.AuthorizationException;
 import com.sk89q.worldedit.util.formatting.WorldEditText;
 import com.sk89q.worldedit.util.formatting.text.Component;
-import com.sk89q.worldedit.util.formatting.text.adapter.spongeapi.TextAdapter;
+import net.kyori.adventure.audience.Audience;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.channel.MessageReceiver;
-import org.spongepowered.api.text.format.TextColor;
-import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.io.File;
 import java.util.Locale;
@@ -49,10 +44,10 @@ public class SpongeCommandSender implements Actor {
      */
     private static final UUID DEFAULT_ID = UUID.fromString("a233eb4b-4cab-42cd-9fd9-7e7b9a3f74be");
 
-    private final MessageReceiver sender;
+    private final Audience sender;
     private final SpongeWorldEdit plugin;
 
-    public SpongeCommandSender(SpongeWorldEdit plugin, MessageReceiver sender) {
+    public SpongeCommandSender(SpongeWorldEdit plugin, Audience sender) {
         checkNotNull(plugin);
         checkNotNull(sender);
         checkArgument(!(sender instanceof Player), "Cannot wrap a player");
@@ -72,39 +67,9 @@ public class SpongeCommandSender implements Actor {
         return "Unknown Sender";
     }
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public void printRaw(String msg) {
-        for (String part : msg.split("\n")) {
-            sender.sendMessage(TextSerializers.LEGACY_FORMATTING_CODE.deserialize(part));
-        }
-    }
-
-    @Override
-    public void print(String msg) {
-        sendColorized(msg, TextColors.LIGHT_PURPLE.get());
-    }
-
-    @Override
-    public void printDebug(String msg) {
-        sendColorized(msg, TextColors.GRAY.get());
-    }
-
-    @Override
-    public void printError(String msg) {
-        sendColorized(msg, TextColors.RED.get());
-    }
-
     @Override
     public void print(Component component) {
-        TextAdapter.sendMessage(sender, WorldEditText.format(component, getLocale()));
-    }
-
-    @SuppressWarnings("deprecation")
-    private void sendColorized(String msg, TextColor formatting) {
-        for (String part : msg.split("\n")) {
-            sender.sendMessage(Text.of(formatting, TextSerializers.LEGACY_FORMATTING_CODE.deserialize(part)));
-        }
+        sender.sendMessage(SpongeTextAdapter.convert(WorldEditText.format(component, getLocale())));
     }
 
     @Override

@@ -38,7 +38,7 @@ import com.sk89q.worldedit.world.block.BlockStateHolder;
 import com.sk89q.worldedit.world.item.ItemTypes;
 import com.sk89q.worldedit.world.weather.WeatherType;
 import com.sk89q.worldedit.world.weather.WeatherTypes;
-import org.spongepowered.api.CatalogKey;
+import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
@@ -50,7 +50,6 @@ import org.spongepowered.api.entity.EntityType;
 import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.util.AABB;
 import org.spongepowered.api.world.BlockChangeFlags;
-import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.server.ServerWorld;
 import org.spongepowered.api.world.weather.Weather;
 import org.spongepowered.math.vector.Vector3d;
@@ -116,13 +115,13 @@ public abstract class SpongeWorld extends AbstractWorld {
 
     @Override
     public String getName() {
-        return getWorld().getProperties().getDirectoryName();
+        return getWorld().getKey().toString();
     }
 
     @Override
     public String getId() {
         return getName().replace(" ", "_").toLowerCase(Locale.ROOT)
-            + getWorld().getDimension().getType().getKey().getFormatted().toLowerCase(Locale.ROOT);
+            + getWorld().getDimensionType().getKey().getFormatted().toLowerCase(Locale.ROOT);
     }
 
     @Override
@@ -133,8 +132,10 @@ public abstract class SpongeWorld extends AbstractWorld {
     @SuppressWarnings("WeakerAccess")
     protected BlockState getBlockState(BlockStateHolder<?> block) {
         if (block instanceof com.sk89q.worldedit.world.block.BlockState) {
-            BlockState state =
-                    Sponge.getRegistry().getCatalogRegistry().get(BlockType.class, CatalogKey.resolve(block.getBlockType().getId())).orElse(BlockTypes.AIR.get()).getDefaultState();
+            BlockState state = Sponge.getRegistry().getCatalogRegistry().get(
+                BlockType.class,
+                ResourceKey.resolve(block.getBlockType().getId())
+            ).orElse(BlockTypes.AIR.get()).getDefaultState();
             for (Map.Entry<Property<?>, Object> entry : block.getStates().entrySet()) {
                 // TODO Convert across states
             }
@@ -154,7 +155,7 @@ public abstract class SpongeWorld extends AbstractWorld {
         checkNotNull(position);
         checkNotNull(block);
 
-        World world = getWorldChecked();
+        ServerWorld world = getWorldChecked();
 
         // First set the block
         Vector3i pos = new Vector3i(position.getX(), position.getY(), position.getZ());
@@ -281,7 +282,10 @@ public abstract class SpongeWorld extends AbstractWorld {
     public Entity createEntity(Location location, BaseEntity entity) {
         ServerWorld world = getWorld();
 
-        EntityType entityType = Sponge.getRegistry().getCatalogRegistry().get(EntityType.class, CatalogKey.resolve(entity.getType().getId())).get();
+        EntityType<?> entityType = Sponge.getRegistry().getCatalogRegistry().get(
+            EntityType.class,
+            ResourceKey.resolve(entity.getType().getId())
+        ).get();
         Vector3d pos = new Vector3d(location.getX(), location.getY(), location.getZ());
 
         org.spongepowered.api.entity.Entity newEnt = world.createEntity(entityType, pos);
@@ -293,7 +297,7 @@ public abstract class SpongeWorld extends AbstractWorld {
         Vector3 dir = location.getDirection();
 
         newEnt.setLocationAndRotation(
-                org.spongepowered.api.world.Location.of(getWorld(), pos),
+                org.spongepowered.api.world.ServerLocation.of(getWorld(), pos),
                 new Vector3d(dir.getX(), dir.getY(), dir.getZ())
         );
 
@@ -317,18 +321,18 @@ public abstract class SpongeWorld extends AbstractWorld {
 
     @Override
     public void setWeather(WeatherType weatherType) {
-        getWorld().setWeather(Sponge.getRegistry().getCatalogRegistry().get(Weather.class, CatalogKey.resolve(weatherType.getId())).get());
+        getWorld().setWeather(Sponge.getRegistry().getCatalogRegistry().get(Weather.class, ResourceKey.resolve(weatherType.getId())).get());
     }
 
     @Override
     public void setWeather(WeatherType weatherType, long duration) {
         // TODO Ticks?
-        getWorld().setWeather(Sponge.getRegistry().getCatalogRegistry().get(Weather.class, CatalogKey.resolve(weatherType.getId())).get(), Duration.ofSeconds(duration * 20));
+        getWorld().setWeather(Sponge.getRegistry().getCatalogRegistry().get(Weather.class, ResourceKey.resolve(weatherType.getId())).get(), Duration.ofSeconds(duration * 20));
     }
 
     @Override
     public BlockVector3 getSpawnPosition() {
-        return SpongeAdapter.asBlockVector(getWorld().getSpawnLocation());
+        return SpongeAdapter.adapt(getWorld().getProperties().getSpawnPosition());
     }
 
 }

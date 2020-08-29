@@ -20,11 +20,14 @@
 package com.sk89q.worldedit.sponge;
 
 import com.sk89q.worldedit.command.util.PermissionCondition;
+import com.sk89q.worldedit.util.formatting.WorldEditText;
+import net.kyori.adventure.text.Component;
 import org.enginehub.piston.Command;
 import org.spongepowered.api.command.CommandCause;
-import org.spongepowered.api.text.Text;
+import org.spongepowered.api.entity.living.player.Player;
 
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
@@ -51,19 +54,22 @@ public abstract class CommandAdapter implements org.spongepowered.api.command.Co
     }
 
     @Override
-    public Optional<Text> getShortDescription(CommandCause source) {
+    public Optional<Component> getShortDescription(CommandCause source) {
+        Locale locale = source.getAudience() instanceof Player ? ((Player) source.getAudience()).getLocale() : Locale.US;
         return Optional.of(command.getDescription())
-            .map(desc -> SpongeTextAdapter.convert(desc, source.getMessageReceiver().getLocale()));
+            .map(desc -> SpongeTextAdapter.convert(WorldEditText.format(desc, locale)));
     }
 
     @Override
-    public Optional<Text> getHelp(CommandCause source) {
+    public Optional<Component> getHelp(CommandCause source) {
+        Locale locale = source.getAudience() instanceof Player ? ((Player) source.getAudience()).getLocale() : Locale.US;
         return Optional.of(command.getFullHelp())
-            .map(help -> SpongeTextAdapter.convert(help, source.getMessageReceiver().getLocale()));
+            .map(help -> SpongeTextAdapter.convert(WorldEditText.format(help, locale)));
     }
 
     @Override
-    public Text getUsage(CommandCause source) {
-        return convert(command.getUsage(), source.getMessageReceiver().getLocale());
+    public Component getUsage(CommandCause source) {
+        Locale locale = source.getAudience() instanceof Player ? ((Player) source.getAudience()).getLocale() : Locale.US;
+        return convert(WorldEditText.format(command.getUsage(), locale));
     }
 }
