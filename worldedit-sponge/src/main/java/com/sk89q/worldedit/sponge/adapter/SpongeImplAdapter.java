@@ -21,14 +21,8 @@ package com.sk89q.worldedit.sponge.adapter;
 
 import com.sk89q.worldedit.blocks.BaseItemStack;
 import com.sk89q.worldedit.entity.BaseEntity;
-import com.sk89q.worldedit.math.Vector3;
-import com.sk89q.worldedit.sponge.SpongeWorld;
-import com.sk89q.worldedit.util.Location;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.world.ServerLocation;
-import org.spongepowered.api.world.server.ServerWorld;
-import org.spongepowered.math.vector.Vector3d;
 
 /**
  * An interface for various things that can't be done through the Sponge API.
@@ -39,15 +33,8 @@ public interface SpongeImplAdapter {
 
     ItemStack makeSpongeStack(BaseItemStack itemStack);
 
-    SpongeWorld getWorld(ServerWorld world);
-
     default boolean isBest() {
         return true;
     }
 
-    default Location adapt(ServerLocation loc, Vector3d rot) {
-        Vector3 position = Vector3.at(loc.getX(), loc.getY(), loc.getZ());
-
-        return new Location(getWorld(loc.getWorld()), position, (float) rot.getY(), (float) rot.getX());
-    }
 }

@@ -19,12 +19,20 @@
 
 package com.sk89q.worldedit.sponge;
 
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.extension.input.InputParseException;
+import com.sk89q.worldedit.extension.input.ParserContext;
+import com.sk89q.worldedit.internal.block.BlockStateIdAccess;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BiomeType;
 import com.sk89q.worldedit.world.biome.BiomeTypes;
+import com.sk89q.worldedit.world.block.BlockState;
+import com.sk89q.worldedit.world.block.BlockStateHolder;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
@@ -33,6 +41,9 @@ import org.spongepowered.api.world.ServerLocation;
 import org.spongepowered.api.world.server.ServerWorld;
 import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3i;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -44,6 +55,12 @@ public class SpongeAdapter {
     private SpongeAdapter() {
     }
 
+    private static final ParserContext TO_BLOCK_CONTEXT = new ParserContext();
+
+    static {
+        TO_BLOCK_CONTEXT.setRestricted(false);
+    }
+
     /**
      * Create a WorldEdit world from a Sponge world.
      *
@@ -52,7 +69,8 @@ public class SpongeAdapter {
      */
     public static World adapt(ServerWorld world) {
         checkNotNull(world);
-        return SpongeWorldEdit.inst().getWorld(world);
+
+        return new SpongeWorld(world);
     }
 
     /**
@@ -185,4 +203,50 @@ public class SpongeAdapter {
     public static Vector3i adapt(BlockVector3 vec) {
         return new Vector3i(vec.getX(), vec.getY(), vec.getZ());
     }
+
+    private static final Map<String, BlockState> blockStateStringCache = new HashMap<>();
+
+    /**
+     * Create a WorldEdit BlockState from a Sponge BlockState.
+     *
+     * @param blockState The Sponge BlockState
+     * @return The WorldEdit BlockState
+     */
+    public static BlockState adapt(org.spongepowered.api.block.BlockState blockState) {
+        checkNotNull(blockState);
+
+        // TODO Support properties
+        return blockStateStringCache.computeIfAbsent(blockState.getType().getKey().toString(), input -> {
+            try {
+                return WorldEdit.getInstance().getBlockFactory().parseFromInput(input, TO_BLOCK_CONTEXT).toImmutableState();
+            } catch (InputParseException e) {
+                e.printStackTrace();
+                return null;
+            }
+        });
+    }
+
+    private static final Int2ObjectMap<org.spongepowered.api.block.BlockState> blockDataCache = new Int2ObjectOpenHashMap<>();
+
+    /**
+     * Create a Sponge BlockState from a WorldEdit BlockStateHolder.
+     *
+     * @param block The WorldEdit BlockStateHolder
+     * @return The Sponge BlockState
+     */
+    public static <B extends BlockStateHolder<B>> org.spongepowered.api.block.BlockState adapt(B block) {
+        checkNotNull(block);
+        // Should never not have an ID for this BlockState.
+        int cacheKey = BlockStateIdAccess.getBlockStateId(block.toImmutableState());
+        if (cacheKey == BlockStateIdAccess.invalidId()) {
+            cacheKey = block.hashCode();
+        }
+
+        // TODO Support properties
+        return blockDataCache.computeIfAbsent(cacheKey, input -> Sponge.getRegistry().getCatalogRegistry().get(
+            org.spongepowered.api.block.BlockState.class,
+            ResourceKey.resolve(block.getBlockType().getId())
+        ).orElse(null));
+    }
+
 }

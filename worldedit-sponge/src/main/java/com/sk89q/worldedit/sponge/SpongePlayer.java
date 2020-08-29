@@ -46,7 +46,6 @@ import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.world.ServerLocation;
-import org.spongepowered.api.world.server.ServerWorld;
 import org.spongepowered.math.vector.Vector3d;
 
 import java.nio.charset.StandardCharsets;
@@ -95,7 +94,7 @@ public class SpongePlayer extends AbstractPlayerActor {
         ServerLocation entityLoc = (ServerLocation) this.player.getLocation();
         Vector3d entityRot = this.player.getRotation();
 
-        return SpongeWorldEdit.inst().getAdapter().adapt(entityLoc, entityRot);
+        return SpongeAdapter.adapt(entityLoc, entityRot);
     }
 
     @Override
@@ -105,7 +104,7 @@ public class SpongePlayer extends AbstractPlayerActor {
 
     @Override
     public com.sk89q.worldedit.world.World getWorld() {
-        return SpongeWorldEdit.inst().getAdapter().getWorld((ServerWorld) player.getWorld());
+        return SpongeAdapter.adapt(player.getWorld());
     }
 
     @Override
@@ -188,7 +187,7 @@ public class SpongePlayer extends AbstractPlayerActor {
 
     @Override
     public <B extends BlockStateHolder<B>> void sendFakeBlock(BlockVector3 pos, B block) {
-        org.spongepowered.api.world.Location loc = player.getWorld().getLocation(pos.getX(), pos.getY(), pos.getZ());
+        ServerLocation loc = player.getWorld().getLocation(pos.getX(), pos.getY(), pos.getZ());
         if (block == null) {
             player.sendBlockChange(loc.getBlockPosition(), loc.getBlock());
         } else {

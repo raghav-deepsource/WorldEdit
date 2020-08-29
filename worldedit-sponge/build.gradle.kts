@@ -20,6 +20,7 @@ dependencies {
     "api"("org.spongepowered:spongeapi:8.0.0-20200828.045227-157")
 //    "implementation"("org.bstats:bstats-sponge:1.7")
     "implementation"("org.apache.logging.log4j:log4j-slf4j-impl:2.11.2")
+    "implementation"("it.unimi.dsi:fastutil:${Versions.FAST_UTIL}")
     "testImplementation"("org.mockito:mockito-core:1.9.0-rc1")
 }
 
@@ -44,6 +45,9 @@ tasks.named<ShadowJar>("shadowJar") {
 //        relocate ("org.bstats", "com.sk89q.worldedit.sponge.bstats") {
 //            include(dependency("org.bstats:bstats-sponge:1.7"))
 //        }
+        relocate("it.unimi.dsi.fastutil", "com.sk89q.worldedit.bukkit.fastutil") {
+            include(dependency("it.unimi.dsi:fastutil"))
+        }
     }
 }
 

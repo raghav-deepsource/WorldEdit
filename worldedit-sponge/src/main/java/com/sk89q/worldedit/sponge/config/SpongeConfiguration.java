@@ -35,8 +35,8 @@ public class SpongeConfiguration extends ConfigurateConfiguration {
     public boolean cheatMode = false;
 
     @Inject
-    public SpongeConfiguration(@DefaultConfig(sharedRoot = false) ConfigurationLoader<CommentedConfigurationNode> config, Logger logger) {
-        super(config, logger);
+    public SpongeConfiguration(@DefaultConfig(sharedRoot = false) ConfigurationLoader<CommentedConfigurationNode> config) {
+        super(config, SpongeWorldEdit.inst().getLogger());
     }
 
     @Override

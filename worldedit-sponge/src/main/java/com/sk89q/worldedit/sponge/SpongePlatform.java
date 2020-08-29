@@ -64,7 +64,7 @@ class SpongePlatform extends AbstractPlatform implements MultiUserPlatform {
     private final SpongeWorldEdit mod;
     private boolean hookingEvents = false;
 
-    private RegisterCommandEvent<org.spongepowered.api.command.Command> commandRegisterEvent;
+    private RegisterCommandEvent<org.spongepowered.api.command.Command.Raw> commandRegisterEvent;
 
     SpongePlatform(SpongeWorldEdit mod) {
         this.mod = mod;
@@ -97,7 +97,12 @@ class SpongePlatform extends AbstractPlatform implements MultiUserPlatform {
 
     @Override
     public int schedule(long delay, long period, Runnable task) {
-        Task.builder().delayTicks(delay).intervalTicks(period).execute(task).build();
+        Task.builder()
+            .delayTicks(delay)
+            .intervalTicks(period)
+            .execute(task)
+            .plugin(mod.getContainer())
+            .build();
         return 0; // TODO This isn't right, but we only check for -1 values
     }
 
@@ -106,7 +111,7 @@ class SpongePlatform extends AbstractPlatform implements MultiUserPlatform {
         Collection<ServerWorld> worlds = Sponge.getServer().getWorldManager().getWorlds();
         List<com.sk89q.worldedit.world.World> ret = new ArrayList<>(worlds.size());
         for (ServerWorld world : worlds) {
-            ret.add(SpongeWorldEdit.inst().getAdapter().getWorld(world));
+            ret.add(SpongeAdapter.adapt(world));
         }
         return ret;
     }
@@ -130,7 +135,7 @@ class SpongePlatform extends AbstractPlatform implements MultiUserPlatform {
         } else {
             for (ServerWorld ws : Sponge.getServer().getWorldManager().getWorlds()) {
                 if (ws.getKey().toString().equals(world.getName())) {
-                    return SpongeWorldEdit.inst().getAdapter().getWorld(ws);
+                    return SpongeAdapter.adapt(ws);
                 }
             }
 
@@ -138,8 +143,21 @@ class SpongePlatform extends AbstractPlatform implements MultiUserPlatform {
         }
     }
 
-    void setCommandRegisterEvent(RegisterCommandEvent<org.spongepowered.api.command.Command> commandRegisterEvent) {
+    void setCommandRegisterEvent(RegisterCommandEvent<org.spongepowered.api.command.Command.Raw> commandRegisterEvent) {
         this.commandRegisterEvent = commandRegisterEvent;
+    }
+
+    private String rebuildArguments(String commandLabel, String args) {
+        int plSep = commandLabel.indexOf(":");
+        if (plSep >= 0 && plSep < commandLabel.length() + 1) {
+            commandLabel = commandLabel.substring(plSep + 1);
+        }
+
+        StringBuilder sb = new StringBuilder("/").append(commandLabel);
+        if (args.length() > 0) {
+            sb.append(" ").append(args);
+        }
+        return sb.toString();
     }
 
     @Override
@@ -152,16 +170,17 @@ class SpongePlatform extends AbstractPlatform implements MultiUserPlatform {
             CommandAdapter adapter = new CommandAdapter(command) {
                 @Override
                 public CommandResult process(CommandCause source, String arguments) throws CommandException {
-                    CommandEvent weEvent = new CommandEvent(SpongeWorldEdit.inst().wrapCommandCause(source), command.getName() + " " + arguments);
+                    CommandEvent weEvent = new CommandEvent(SpongeWorldEdit.inst().wrapCommandCause(source), rebuildArguments(command.getName(), arguments));
                     WorldEdit.getInstance().getEventBus().post(weEvent);
                     return weEvent.isCancelled() ? CommandResult.success() : CommandResult.empty();
                 }
 
                 @Override
                 public List<String> getSuggestions(CommandCause cause, String arguments) throws CommandException {
-                    CommandSuggestionEvent weEvent = new CommandSuggestionEvent(SpongeWorldEdit.inst().wrapCommandCause(cause), command.getName() + " " + arguments);
+                    String args = rebuildArguments(command.getName(), arguments);
+                    CommandSuggestionEvent weEvent = new CommandSuggestionEvent(SpongeWorldEdit.inst().wrapCommandCause(cause), args);
                     WorldEdit.getInstance().getEventBus().post(weEvent);
-                    return CommandUtil.fixSuggestions(arguments, weEvent.getSuggestions());
+                    return CommandUtil.fixSuggestions(args, weEvent.getSuggestions());
                 }
 
                 @Override
@@ -213,7 +232,7 @@ class SpongePlatform extends AbstractPlatform implements MultiUserPlatform {
 
     @Override
     public Set<SideEffect> getSupportedSideEffects() {
-        return ImmutableSet.of();
+        return ImmutableSet.of(SideEffect.UPDATE, SideEffect.NEIGHBORS);
     }
 
     @Override

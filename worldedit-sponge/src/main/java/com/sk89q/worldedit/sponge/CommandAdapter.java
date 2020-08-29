@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.sponge;
 
+import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.command.util.PermissionCondition;
 import com.sk89q.worldedit.util.formatting.WorldEditText;
 import net.kyori.adventure.text.Component;
@@ -33,7 +34,7 @@ import java.util.Set;
 
 import static com.sk89q.worldedit.sponge.SpongeTextAdapter.convert;
 
-public abstract class CommandAdapter implements org.spongepowered.api.command.Command {
+public abstract class CommandAdapter implements org.spongepowered.api.command.Command.Raw {
     private final Command command;
 
     protected CommandAdapter(Command command) {
@@ -55,21 +56,27 @@ public abstract class CommandAdapter implements org.spongepowered.api.command.Co
 
     @Override
     public Optional<Component> getShortDescription(CommandCause source) {
-        Locale locale = source.getAudience() instanceof Player ? ((Player) source.getAudience()).getLocale() : Locale.US;
+        Locale locale = source.getAudience() instanceof Player
+            ? ((Player) source.getAudience()).getLocale()
+            : WorldEdit.getInstance().getConfiguration().defaultLocale;
         return Optional.of(command.getDescription())
             .map(desc -> SpongeTextAdapter.convert(WorldEditText.format(desc, locale)));
     }
 
     @Override
     public Optional<Component> getHelp(CommandCause source) {
-        Locale locale = source.getAudience() instanceof Player ? ((Player) source.getAudience()).getLocale() : Locale.US;
+        Locale locale = source.getAudience() instanceof Player
+            ? ((Player) source.getAudience()).getLocale()
+            : WorldEdit.getInstance().getConfiguration().defaultLocale;
         return Optional.of(command.getFullHelp())
             .map(help -> SpongeTextAdapter.convert(WorldEditText.format(help, locale)));
     }
 
     @Override
     public Component getUsage(CommandCause source) {
-        Locale locale = source.getAudience() instanceof Player ? ((Player) source.getAudience()).getLocale() : Locale.US;
+        Locale locale = source.getAudience() instanceof Player
+            ? ((Player) source.getAudience()).getLocale()
+            : WorldEdit.getInstance().getConfiguration().defaultLocale;
         return convert(WorldEditText.format(command.getUsage(), locale));
     }
 }

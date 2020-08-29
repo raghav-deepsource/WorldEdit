@@ -32,9 +32,11 @@ import com.sk89q.worldedit.sponge.adapter.AdapterLoadException;
 import com.sk89q.worldedit.sponge.adapter.SpongeImplAdapter;
 import com.sk89q.worldedit.sponge.adapter.SpongeImplLoader;
 import com.sk89q.worldedit.sponge.config.SpongeConfiguration;
+import com.sk89q.worldedit.world.World;
 import net.kyori.adventure.audience.Audience;
 //import org.bstats.sponge.Metrics2;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
@@ -62,7 +64,6 @@ import org.spongepowered.api.world.server.ServerWorld;
 import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.jvm.Plugin;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -78,8 +79,7 @@ import static com.sk89q.worldedit.internal.anvil.ChunkDeleter.DELCHUNKS_FILE_NAM
 @Plugin(value = SpongeWorldEdit.MOD_ID)
 public class SpongeWorldEdit {
 
-    @Inject
-    private Logger logger;
+    private Logger logger = LoggerFactory.getLogger(SpongeWorldEdit.class);
 
     // private final Metrics2 metrics;
 
@@ -108,7 +108,7 @@ public class SpongeWorldEdit {
     private SpongeConfiguration config;
 
     @Inject @ConfigDir(sharedRoot = false)
-    private File workingDir;
+    private Path workingDir;
 
     // Metrics2.Factory metricsFactory <- from constructor params
     @Inject
@@ -122,17 +122,18 @@ public class SpongeWorldEdit {
         // Load configuration
         config.load();
 
-        Task.builder().interval(30, TimeUnit.SECONDS).execute(ThreadSafeCache.getInstance()).build();
-    }
+        Task.builder()
+            .interval(30, TimeUnit.SECONDS)
+            .execute(ThreadSafeCache.getInstance())
+            .plugin(this.container)
+            .build();
 
-    @Listener
-    public void serverStarting(StartingEngineEvent<Server> event) {
         if (this.platform != null) {
             logger.warn("StartingEngineEvent occurred when StoppingEngineEvent hasn't");
             WorldEdit.getInstance().getPlatformManager().unregister(platform);
         }
 
-        final Path delChunks = workingDir.toPath().resolve(DELCHUNKS_FILE_NAME);
+        final Path delChunks = workingDir.resolve(DELCHUNKS_FILE_NAME);
         if (Files.exists(delChunks)) {
             ChunkDeleter.runFromFile(delChunks, true);
         }
@@ -140,6 +141,11 @@ public class SpongeWorldEdit {
         this.platform = new SpongePlatform(this);
         this.provider = new SpongePermissionsProvider();
 
+        WorldEdit.getInstance().getPlatformManager().register(platform);
+    }
+
+    @Listener
+    public void serverStarting(StartingEngineEvent<Server> event) {
         Sponge.getRegistry().getCatalogRegistry().getAllOf(BlockType.class).forEach(blockType -> {
             // TODO Handle blockstate stuff
             String id = blockType.getKey().toString();
@@ -155,8 +161,6 @@ public class SpongeWorldEdit {
             }
         });
 
-        WorldEdit.getInstance().getPlatformManager().register(platform);
-
         logger.info("WorldEdit for Sponge (version " + getInternalVersion() + ") is loaded");
     }
 
@@ -171,7 +175,7 @@ public class SpongeWorldEdit {
     public void serverStarted(StartedEngineEvent<Server> event) {
         WorldEdit.getInstance().getEventBus().post(new PlatformReadyEvent());
 
-        loadAdapter();
+        // loadAdapter();
     }
 
     @Listener
@@ -180,9 +184,10 @@ public class SpongeWorldEdit {
     }
 
     @Listener
-    public void onRegisterSpongeCommand(final RegisterCommandEvent<Command> event) {
+    public void onRegisterSpongeCommand(final RegisterCommandEvent<Command.Raw> event) {
         platform.setCommandRegisterEvent(event);
         platform.registerCommands(WorldEdit.getInstance().getPlatformManager().getPlatformCommandManager().getCommandManager());
+        platform.setCommandRegisterEvent(null);
     }
 
     private void loadAdapter() {
@@ -215,6 +220,14 @@ public class SpongeWorldEdit {
                     + "that handles the world editing.");
             }
         }
+    }
+
+    public PluginContainer getContainer() {
+        return this.container;
+    }
+
+    public Logger getLogger() {
+        return this.logger;
     }
 
     public SpongeImplAdapter getAdapter() {
@@ -343,17 +356,6 @@ public class SpongeWorldEdit {
     }
 
     /**
-     * Get the WorldEdit proxy for the given world.
-     *
-     * @param world the world
-     * @return the WorldEdit world
-     */
-    public SpongeWorld getWorld(ServerWorld world) {
-        checkNotNull(world);
-        return getAdapter().getWorld(world);
-    }
-
-    /**
      * Get the WorldEdit proxy for the platform.
      *
      * @return the WorldEdit platform
@@ -368,7 +370,7 @@ public class SpongeWorldEdit {
      * @return the working directory
      */
     public Path getWorkingDir() {
-        return this.workingDir.toPath();
+        return this.workingDir;
     }
 
     /**
