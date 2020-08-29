@@ -33,7 +33,7 @@ import com.sk89q.worldedit.sponge.adapter.SpongeImplAdapter;
 import com.sk89q.worldedit.sponge.adapter.SpongeImplLoader;
 import com.sk89q.worldedit.sponge.config.SpongeConfiguration;
 import net.kyori.adventure.audience.Audience;
-import org.bstats.sponge.Metrics2;
+//import org.bstats.sponge.Metrics2;
 import org.slf4j.Logger;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
@@ -81,7 +81,7 @@ public class SpongeWorldEdit {
     @Inject
     private Logger logger;
 
-    private final Metrics2 metrics;
+    // private final Metrics2 metrics;
 
     public static final String MOD_ID = "worldedit";
     private static final int BSTATS_PLUGIN_ID = 3329;
@@ -110,10 +110,11 @@ public class SpongeWorldEdit {
     @Inject @ConfigDir(sharedRoot = false)
     private File workingDir;
 
+    // Metrics2.Factory metricsFactory <- from constructor params
     @Inject
-    public SpongeWorldEdit(Metrics2.Factory metricsFactory) {
+    public SpongeWorldEdit() {
         inst = this;
-        metrics = metricsFactory.make(BSTATS_PLUGIN_ID);
+        // metrics = metricsFactory.make(BSTATS_PLUGIN_ID);
     }
 
     @Listener

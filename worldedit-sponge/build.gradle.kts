@@ -18,7 +18,7 @@ dependencies {
     "api"(project(":worldedit-core"))
     "api"(project(":worldedit-libs:sponge"))
     "api"("org.spongepowered:spongeapi:8.0.0-20200828.045227-157")
-    "implementation"("org.bstats:bstats-sponge:1.7")
+//    "implementation"("org.bstats:bstats-sponge:1.7")
     "implementation"("org.apache.logging.log4j:log4j-slf4j-impl:2.11.2")
     "testImplementation"("org.mockito:mockito-core:1.9.0-rc1")
 }
@@ -41,9 +41,9 @@ tasks.named<ShadowJar>("shadowJar") {
         include(dependency("org.slf4j:slf4j-api"))
         include(dependency("org.apache.logging.log4j:log4j-slf4j-impl"))
         include(dependency("org.antlr:antlr4-runtime"))
-        relocate ("org.bstats", "com.sk89q.worldedit.sponge.bstats") {
-            include(dependency("org.bstats:bstats-sponge:1.7"))
-        }
+//        relocate ("org.bstats", "com.sk89q.worldedit.sponge.bstats") {
+//            include(dependency("org.bstats:bstats-sponge:1.7"))
+//        }
     }
 }
 
