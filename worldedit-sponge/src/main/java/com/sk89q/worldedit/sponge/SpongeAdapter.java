@@ -20,6 +20,7 @@
 package com.sk89q.worldedit.sponge;
 
 import com.google.common.collect.ImmutableList;
+import com.sk89q.worldedit.blocks.BaseItemStack;
 import com.sk89q.worldedit.internal.block.BlockStateIdAccess;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.math.Vector3;
@@ -36,12 +37,15 @@ import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
 import com.sk89q.worldedit.world.block.BlockType;
 import com.sk89q.worldedit.world.block.BlockTypes;
+import com.sk89q.worldedit.world.item.ItemType;
+import com.sk89q.worldedit.world.item.ItemTypes;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
+import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.state.BooleanStateProperty;
 import org.spongepowered.api.state.EnumStateProperty;
 import org.spongepowered.api.state.IntegerStateProperty;
@@ -115,6 +119,18 @@ public class SpongeAdapter {
                 throw new IllegalArgumentException("Can't find a Sponge world for " + world);
             }
         }
+    }
+
+    public static ItemStack adapt(BaseItemStack item) {
+        return SpongeWorldEdit.inst().getAdapter().makeSpongeStack(item);
+    }
+
+    public static ItemType adapt(org.spongepowered.api.item.ItemType itemType) {
+        return ItemTypes.get(itemType.getKey().getFormatted());
+    }
+
+    public static org.spongepowered.api.item.ItemType adapt(ItemType itemType) {
+        return Sponge.getRegistry().getCatalogRegistry().get(org.spongepowered.api.item.ItemType.class, ResourceKey.resolve(itemType.getId())).orElse(null);
     }
 
     public static BlockType adapt(org.spongepowered.api.block.BlockType blockType) {

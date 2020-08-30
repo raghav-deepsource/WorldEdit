@@ -51,6 +51,7 @@ import org.spongepowered.api.entity.EntityType;
 import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.util.AABB;
 import org.spongepowered.api.world.BlockChangeFlag;
+import org.spongepowered.api.world.dimension.DimensionTypes;
 import org.spongepowered.api.world.server.ServerWorld;
 import org.spongepowered.api.world.weather.Weather;
 import org.spongepowered.math.vector.Vector3d;
@@ -140,6 +141,8 @@ public class SpongeWorld extends AbstractWorld {
         checkNotNull(position);
         checkNotNull(block);
 
+        clearContainerBlockContents(position);
+
         ServerWorld world = getWorldChecked();
 
         // First set the block
@@ -207,7 +210,7 @@ public class SpongeWorld extends AbstractWorld {
 
     @Override
     public boolean fullySupports3DBiomes() {
-        return true;
+        return getWorld().getDimensionType() != DimensionTypes.OVERWORLD.get();
     }
 
     @Override
@@ -233,7 +236,7 @@ public class SpongeWorld extends AbstractWorld {
                 new Vector3d(position.getX(), position.getY(), position.getZ())
         );
 
-        entity.offer(Keys.ITEM_STACK_SNAPSHOT, SpongeWorldEdit.toSpongeItemStack(item).createSnapshot());
+        entity.offer(Keys.ITEM_STACK_SNAPSHOT, SpongeAdapter.adapt(item).createSnapshot());
         getWorld().spawnEntity(entity);
     }
 

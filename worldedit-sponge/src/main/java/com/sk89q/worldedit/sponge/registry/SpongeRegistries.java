@@ -17,20 +17,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.sk89q.worldedit.sponge;
+package com.sk89q.worldedit.sponge.registry;
 
 import com.sk89q.worldedit.world.registry.BiomeRegistry;
+import com.sk89q.worldedit.world.registry.BlockCategoryRegistry;
 import com.sk89q.worldedit.world.registry.BlockRegistry;
 import com.sk89q.worldedit.world.registry.BundledRegistries;
+import com.sk89q.worldedit.world.registry.ItemCategoryRegistry;
+import com.sk89q.worldedit.world.registry.ItemRegistry;
 
 /**
- * World data for the Sponge platform.
+ * Registry data for the Sponge platform.
  */
-class SpongeRegistries extends BundledRegistries {
+public class SpongeRegistries extends BundledRegistries {
 
     private static final SpongeRegistries INSTANCE = new SpongeRegistries();
     private final BiomeRegistry biomeRegistry = new SpongeBiomeRegistry();
     private final BlockRegistry blockRegistry = new SpongeBlockRegistry();
+    private final BlockCategoryRegistry blockCategoryRegistry = new SpongeBlockCategoryRegistry();
+    private final ItemCategoryRegistry itemCategoryRegistry = new SpongeItemCategoryRegistry();
+    private final ItemRegistry itemRegistry = new SpongeItemRegistry();
 
     @Override
     public BiomeRegistry getBiomeRegistry() {
@@ -40,6 +46,21 @@ class SpongeRegistries extends BundledRegistries {
     @Override
     public BlockRegistry getBlockRegistry() {
         return this.blockRegistry;
+    }
+
+    @Override
+    public BlockCategoryRegistry getBlockCategoryRegistry() {
+        return this.blockCategoryRegistry;
+    }
+
+    @Override
+    public ItemCategoryRegistry getItemCategoryRegistry() {
+        return this.itemCategoryRegistry;
+    }
+
+    @Override
+    public ItemRegistry getItemRegistry() {
+        return this.itemRegistry;
     }
 
     /**

@@ -145,10 +145,13 @@ public class SpongeWorldEdit {
     @Listener
     public void serverStarting(StartingEngineEvent<Server> event) {
         Sponge.getRegistry().getCatalogRegistry().getAllOf(BlockType.class).forEach(blockType -> {
-            // TODO Handle blockstate stuff
             String id = blockType.getKey().toString();
             if (!com.sk89q.worldedit.world.block.BlockType.REGISTRY.keySet().contains(id)) {
-                com.sk89q.worldedit.world.block.BlockType.REGISTRY.register(id, new com.sk89q.worldedit.world.block.BlockType(id));
+                com.sk89q.worldedit.world.block.BlockType.REGISTRY.register(
+                    id,
+                    new com.sk89q.worldedit.world.block.BlockType(id,
+                        blockState -> SpongeAdapter.adapt(SpongeAdapter.adapt(blockState.getBlockType()).getDefaultState()))
+                );
             }
         });
 
@@ -306,10 +309,6 @@ public class SpongeWorldEdit {
         }
     }
 
-    public static ItemStack toSpongeItemStack(BaseItemStack item) {
-        return inst().getAdapter().makeSpongeStack(item);
-    }
-
     /**
      * Get the configuration.
      *
@@ -338,7 +337,7 @@ public class SpongeWorldEdit {
         if (rootCause instanceof Audience) {
             return new SpongeCommandSender(this, (Audience) rootCause);
         }
-        // TODO
+        // TODO CommandBlocks
         return null;
     }
 

@@ -63,8 +63,7 @@ public class SpongeCommandSender implements Actor {
 
     @Override
     public String getName() {
-        // TODO
-        return "Unknown Sender";
+        return "Console";
     }
 
     @Override
@@ -121,17 +120,17 @@ public class SpongeCommandSender implements Actor {
             @Nullable
             @Override
             public String getName() {
-                return null;
+                return "Console";
             }
 
             @Override
             public boolean isActive() {
-                return false;
+                return true;
             }
 
             @Override
             public boolean isPersistent() {
-                return false;
+                return true;
             }
 
             @Override

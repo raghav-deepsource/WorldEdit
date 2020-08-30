@@ -191,7 +191,7 @@ public class SpongePlayer extends AbstractPlayerActor {
         if (block == null) {
             player.sendBlockChange(loc.getBlockPosition(), loc.getBlock());
         } else {
-            // TODO
+            // TODO via adapter
             //            player.sendBlockChange(loc, BukkitAdapter.adapt(block));
             //            if (block instanceof BaseBlock && ((BaseBlock) block).hasNbtData()) {
             //                BukkitImplAdapter adapter = WorldEditPlugin.getInstance().getBukkitImplAdapter();

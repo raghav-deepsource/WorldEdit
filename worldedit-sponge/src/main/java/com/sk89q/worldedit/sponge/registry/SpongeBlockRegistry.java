@@ -17,9 +17,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.sk89q.worldedit.sponge;
+package com.sk89q.worldedit.sponge.registry;
 
 import com.sk89q.worldedit.registry.state.Property;
+import com.sk89q.worldedit.sponge.SpongeAdapter;
+import com.sk89q.worldedit.sponge.SpongeTextAdapter;
 import com.sk89q.worldedit.util.formatting.text.Component;
 import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockType;
@@ -58,7 +60,7 @@ public class SpongeBlockRegistry extends BundledBlockRegistry {
         org.spongepowered.api.block.BlockState workingState = spongeType.getDefaultState();
         for (Property<?> property : state.getBlockType().getProperties()) {
             StateProperty spongeProp = spongeType.getStatePropertyByName(property.getName()).get();
-            Object val = spongeProp.parseValue(state.getState(property).toString().toLowerCase(Locale.ENGLISH)).get();
+            Object val = spongeProp.parseValue(state.getState(property).toString().toLowerCase(Locale.ROOT)).get();
             workingState = (org.spongepowered.api.block.BlockState) workingState.withStateProperty(spongeProp, (Comparable) val).get();
         }
         return OptionalInt.of(PaletteTypes.GLOBAL_BLOCKS.get().create().getOrAssign(workingState));

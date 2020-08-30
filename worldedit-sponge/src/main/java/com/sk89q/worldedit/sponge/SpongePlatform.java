@@ -31,6 +31,7 @@ import com.sk89q.worldedit.extension.platform.MultiUserPlatform;
 import com.sk89q.worldedit.extension.platform.Preference;
 import com.sk89q.worldedit.internal.command.CommandUtil;
 import com.sk89q.worldedit.sponge.config.SpongeConfiguration;
+import com.sk89q.worldedit.sponge.registry.SpongeRegistries;
 import com.sk89q.worldedit.util.SideEffect;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.registry.Registries;
@@ -82,7 +83,7 @@ class SpongePlatform extends AbstractPlatform implements MultiUserPlatform {
     @Override
     public int getDataVersion() {
         // TODO add to adapter - org.spongepowered.common.data.util.DataUtil#MINECRAFT_DATA_VERSION
-        return 1631;
+        return 2230;
     }
 
     @Override
@@ -97,13 +98,19 @@ class SpongePlatform extends AbstractPlatform implements MultiUserPlatform {
 
     @Override
     public int schedule(long delay, long period, Runnable task) {
-        Task.builder()
-            .delayTicks(delay)
-            .intervalTicks(period)
-            .execute(task)
-            .plugin(mod.getContainer())
-            .build();
-        return 0; // TODO This isn't right, but we only check for -1 values
+        try {
+            Task.builder()
+                .delayTicks(delay)
+                .intervalTicks(period)
+                .execute(task)
+                .plugin(mod.getContainer())
+                .build();
+        } catch (IllegalStateException e) {
+            // Thrown when it failed to schedule
+            SpongeWorldEdit.inst().getLogger().warn("Failed to schedule a task", e);
+            return -1;
+        }
+        return 0;
     }
 
     @Override
