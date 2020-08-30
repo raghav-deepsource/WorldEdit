@@ -19,31 +19,41 @@
 
 package com.sk89q.worldedit.sponge;
 
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.extension.input.InputParseException;
-import com.sk89q.worldedit.extension.input.ParserContext;
+import com.google.common.collect.ImmutableList;
 import com.sk89q.worldedit.internal.block.BlockStateIdAccess;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.math.Vector3;
+import com.sk89q.worldedit.registry.state.BooleanProperty;
+import com.sk89q.worldedit.registry.state.DirectionalProperty;
+import com.sk89q.worldedit.registry.state.EnumProperty;
+import com.sk89q.worldedit.registry.state.IntegerProperty;
+import com.sk89q.worldedit.registry.state.Property;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BiomeType;
 import com.sk89q.worldedit.world.biome.BiomeTypes;
 import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
+import com.sk89q.worldedit.world.block.BlockType;
+import com.sk89q.worldedit.world.block.BlockTypes;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
+import org.spongepowered.api.state.BooleanStateProperty;
+import org.spongepowered.api.state.EnumStateProperty;
+import org.spongepowered.api.state.IntegerStateProperty;
+import org.spongepowered.api.state.StateProperty;
+import org.spongepowered.api.util.Direction;
 import org.spongepowered.api.world.ServerLocation;
+import org.spongepowered.api.world.schematic.PaletteTypes;
 import org.spongepowered.api.world.server.ServerWorld;
 import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3i;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -53,12 +63,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class SpongeAdapter {
 
     private SpongeAdapter() {
-    }
-
-    private static final ParserContext TO_BLOCK_CONTEXT = new ParserContext();
-
-    static {
-        TO_BLOCK_CONTEXT.setRestricted(false);
     }
 
     /**
@@ -111,6 +115,14 @@ public class SpongeAdapter {
                 throw new IllegalArgumentException("Can't find a Sponge world for " + world);
             }
         }
+    }
+
+    public static BlockType adapt(org.spongepowered.api.block.BlockType blockType) {
+        return BlockTypes.get(blockType.getKey().getFormatted());
+    }
+
+    public static org.spongepowered.api.block.BlockType adapt(BlockType blockType) {
+        return Sponge.getRegistry().getCatalogRegistry().get(org.spongepowered.api.block.BlockType.class, ResourceKey.resolve(blockType.getId())).orElse(null);
     }
 
     public static BiomeType adapt(org.spongepowered.api.world.biome.BiomeType biomeType) {
@@ -204,7 +216,44 @@ public class SpongeAdapter {
         return new Vector3i(vec.getX(), vec.getY(), vec.getZ());
     }
 
-    private static final Map<String, BlockState> blockStateStringCache = new HashMap<>();
+    public static com.sk89q.worldedit.util.Direction adapt(Direction direction) {
+        if (direction == null) {
+            return null;
+        }
+        switch (direction) {
+            case NORTH: return com.sk89q.worldedit.util.Direction.NORTH;
+            case SOUTH: return com.sk89q.worldedit.util.Direction.SOUTH;
+            case WEST: return com.sk89q.worldedit.util.Direction.WEST;
+            case EAST: return com.sk89q.worldedit.util.Direction.EAST;
+            case DOWN: return com.sk89q.worldedit.util.Direction.DOWN;
+            case UP:
+            default:
+                return com.sk89q.worldedit.util.Direction.UP;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Property<?> adaptProperty(StateProperty<?> property) {
+        if (property instanceof BooleanStateProperty) {
+            return new BooleanProperty(property.getName(), ImmutableList.copyOf(((BooleanStateProperty) property).getPossibleValues()));
+        }
+        if (property instanceof IntegerStateProperty) {
+            return new IntegerProperty(property.getName(), ImmutableList.copyOf(((IntegerStateProperty) property).getPossibleValues()));
+        }
+        if (property instanceof EnumStateProperty) {
+            if (property.getPossibleValues().stream().anyMatch(ent -> ent instanceof Direction)) {
+                return new DirectionalProperty(property.getName(), ((EnumStateProperty<Direction>) property).getPossibleValues()
+                    .stream()
+                    .map(SpongeAdapter::adapt)
+                    .collect(Collectors.toList()));
+            } else {
+                return new EnumProperty(property.getName(), ((EnumStateProperty<?>) property).getPossibleValues().stream()
+                    .map(Enum::name)
+                    .collect(Collectors.toList()));
+            }
+        }
+        return new SpongePropertyAdapter<>(property);
+    }
 
     /**
      * Create a WorldEdit BlockState from a Sponge BlockState.
@@ -215,18 +264,10 @@ public class SpongeAdapter {
     public static BlockState adapt(org.spongepowered.api.block.BlockState blockState) {
         checkNotNull(blockState);
 
-        // TODO Support properties
-        return blockStateStringCache.computeIfAbsent(blockState.getType().getKey().toString(), input -> {
-            try {
-                return WorldEdit.getInstance().getBlockFactory().parseFromInput(input, TO_BLOCK_CONTEXT).toImmutableState();
-            } catch (InputParseException e) {
-                e.printStackTrace();
-                return null;
-            }
-        });
+        return BlockStateIdAccess.getBlockStateById(PaletteTypes.GLOBAL_BLOCKS.get().create().getOrAssign(blockState));
     }
 
-    private static final Int2ObjectMap<org.spongepowered.api.block.BlockState> blockDataCache = new Int2ObjectOpenHashMap<>();
+    private static final Int2ObjectMap<org.spongepowered.api.block.BlockState> spongeBlockStateCache = new Int2ObjectOpenHashMap<>();
 
     /**
      * Create a Sponge BlockState from a WorldEdit BlockStateHolder.
@@ -242,11 +283,7 @@ public class SpongeAdapter {
             cacheKey = block.hashCode();
         }
 
-        // TODO Support properties
-        return blockDataCache.computeIfAbsent(cacheKey, input -> Sponge.getRegistry().getCatalogRegistry().get(
-            org.spongepowered.api.block.BlockState.class,
-            ResourceKey.resolve(block.getBlockType().getId())
-        ).orElse(null));
+        return spongeBlockStateCache.computeIfAbsent(cacheKey, input -> PaletteTypes.GLOBAL_BLOCKS.get().create().get(input).orElse(null));
     }
 
 }

@@ -20,6 +20,7 @@
 package com.sk89q.worldedit.sponge;
 
 import com.sk89q.worldedit.world.registry.BiomeRegistry;
+import com.sk89q.worldedit.world.registry.BlockRegistry;
 import com.sk89q.worldedit.world.registry.BundledRegistries;
 
 /**
@@ -29,10 +30,16 @@ class SpongeRegistries extends BundledRegistries {
 
     private static final SpongeRegistries INSTANCE = new SpongeRegistries();
     private final BiomeRegistry biomeRegistry = new SpongeBiomeRegistry();
+    private final BlockRegistry blockRegistry = new SpongeBlockRegistry();
 
     @Override
     public BiomeRegistry getBiomeRegistry() {
-        return biomeRegistry;
+        return this.biomeRegistry;
+    }
+
+    @Override
+    public BlockRegistry getBlockRegistry() {
+        return this.blockRegistry;
     }
 
     /**

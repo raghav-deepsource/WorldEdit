@@ -32,7 +32,6 @@ import com.sk89q.worldedit.sponge.adapter.AdapterLoadException;
 import com.sk89q.worldedit.sponge.adapter.SpongeImplAdapter;
 import com.sk89q.worldedit.sponge.adapter.SpongeImplLoader;
 import com.sk89q.worldedit.sponge.config.SpongeConfiguration;
-import com.sk89q.worldedit.world.World;
 import net.kyori.adventure.audience.Audience;
 //import org.bstats.sponge.Metrics2;
 import org.slf4j.Logger;
@@ -60,7 +59,6 @@ import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.world.ServerLocation;
-import org.spongepowered.api.world.server.ServerWorld;
 import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.jvm.Plugin;
 
