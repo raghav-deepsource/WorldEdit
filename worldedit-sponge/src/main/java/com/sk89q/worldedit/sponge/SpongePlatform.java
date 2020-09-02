@@ -82,8 +82,7 @@ class SpongePlatform extends AbstractPlatform implements MultiUserPlatform {
 
     @Override
     public int getDataVersion() {
-        // TODO add to adapter - org.spongepowered.common.data.util.DataUtil#MINECRAFT_DATA_VERSION
-        return 2230;
+        return Sponge.getPlatform().getMinecraftVersion().getDataVersion().orElse(-1);
     }
 
     @Override
