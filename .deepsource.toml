@@ -1,0 +1,12 @@
+
+version = 1
+
+[[analyzers]]
+name = "java"
+enabled = true
+
+  [analyzers.meta]
+  gradle_modules = [
+    ":worldedit-core",
+    ":worldedit-cli"
+  ]
