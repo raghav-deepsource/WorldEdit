@@ -10,4 +10,4 @@ enabled = true
     ":worldedit-core",
     ":worldedit-cli"
   ]
-  java_version = 8
+  java_version = "8"
